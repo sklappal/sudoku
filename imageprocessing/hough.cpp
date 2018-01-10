@@ -143,38 +143,34 @@ namespace hough
       auto cost = cosCache[thetaIndex];
       auto sint = sinCache[thetaIndex];      
 
+      std::cout << "Theta: " << theta;
+      std::cout << " Rho: " << rho;
+      std::cout << " Val: " << normalized[index] << std::endl;
+
+      unsigned char color = 255u;
       // line equation: rho = x cos (theta) + y sin (theta)
+      int x_0, x_1, y_0, y_1;
       if (std::abs(theta) > 1e-2)
       {
         // normal case, find x-intersection
-        auto x_0 = rho / cost;
-        auto y_0 = 0.0;
+        x_0 = round(rho / cost);
+        y_0 = 0;
         
-        auto y_1 = gs.height();
-        auto x_1 = (rho - y_1 * sint) / cost;
-        
-        unsigned char color = 255u;
-        gs.draw_line(x_0, y_0, x_1, y_1, &color);
+        y_1 = gs.height();
+        x_1 = round((rho - y_1 * sint) / cost);        
       }
       else
        {
         // along the x axis, find y-intersection
-        auto x_0 = 0.0;
-        auto y_0 = rho / sint;
+        x_0 = 0;
+        y_0 = round(rho / sint);
 
-        auto x_1 = gs.width();
-        auto y_1 = (rho - x_1 * cost) / sint;
-        unsigned char color = 255u;
-        gs.draw_line(x_0, y_0, x_1, y_1, &color);
+        x_1 = gs.width();
+        y_1 = round((rho - x_1 * cost) / sint);
       }
-     
-
-      std::cout << "Theta: " << indexToTheta(index % thetaCount);
-      std::cout << " Rho: " << indexToRho(index / thetaCount, maxRho);
-      std::cout << " Val: " << normalized[index] << std::endl;
-    }
-
-    
+      
+      gs.draw_line(x_0, y_0, x_1, y_1, &color);
+    }   
 
     return ret;
   }
