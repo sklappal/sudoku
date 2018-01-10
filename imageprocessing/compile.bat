@@ -1,0 +1,1 @@
+g++ -O3 -Wall -static-libstdc++ hello.cpp -lgdi32 -ljpeg
