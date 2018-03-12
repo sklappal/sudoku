@@ -5,6 +5,7 @@
 
 #include "line.h"
 #include "hough.h"
+#include "gridfinder.h"
 #include "../timer.h"
 
 using namespace cimg_library;
@@ -120,7 +121,7 @@ namespace hough
 
     auto tlinefind = common::timer("Line finding & drawing");
     auto maxIndices = findMaxIndices(normalized, lineFindCount);
-    auto parametrized_lines = linecontainer(maxRho);   
+    auto parametrized_lines = std::vector<parametrized_line>();
     for (size_t i = 0; i < lineFindCount; i++)
     {
       auto index = maxIndices[i];
@@ -129,8 +130,10 @@ namespace hough
       auto rho = indexToRho(index / thetaCount, maxRho);
 
       auto p_line = parametrized_line(rho, theta);
-      parametrized_lines.add(p_line);
+      parametrized_lines.push_back(p_line);
     }   
+
+    parametrized_lines = hough::find_grid(parametrized_lines, maxRho);
 
     auto lines = std::vector<line>();
     for (size_t i = 0; i < parametrized_lines.size(); i++)
@@ -139,19 +142,17 @@ namespace hough
       auto theta = p_line.theta();
       auto rho = p_line.rho();
 
-      std::cout << "theta: " << theta << " rho: " << rho << std::endl;
-
       auto cost = std::cos(theta);
       auto sint = std::sin(theta);      
 
       // line equation: rho = x cos (theta) + y sin (theta)
       int x_0, x_1, y_0, y_1;
-      if (std::abs(theta) > 1e-2)
+      if (std::abs(cost) > 1e-1)
       {
         // normal case, find x-intersection
         x_0 = round(rho / cost);
         y_0 = 0;
-        
+
         y_1 = gs.height();
         x_1 = round((rho - y_1 * sint) / cost);        
       }
@@ -172,7 +173,7 @@ namespace hough
     for(size_t i = 0; i < lines.size(); i++)
     {
       auto line = lines[i];
-      with_lines.draw_line(line.x0(), line.y0(), line.x1(), line.y1(), &color);
+      with_lines.draw_line(line.x0(), line.y0(), line.x1(), line.y1(), &color);      
     }
 
     imageList.insert(with_lines);

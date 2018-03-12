@@ -35,13 +35,27 @@ class line
 
 };
 
+namespace
+{
+  double normalize(double angle)
+  {
+    auto normalized = std::fmod(angle, 360.0);
+
+    if (normalized < 0.0)
+      normalized += 2 * M_PI;
+
+    return normalized;
+  }
+}
+
+
 class parametrized_line
 {
   public:
     parametrized_line(double rho, double theta)
     {
       m_rho = rho;
-      m_theta = theta;      
+      m_theta = normalize(theta);
     }
 
     parametrized_line(const parametrized_line& l) : parametrized_line(l.rho(), l.theta())

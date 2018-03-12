@@ -35,7 +35,11 @@ int main() {
   imageList.insert(inverted);
   names.push_back("inverted");
 
-  auto closed = imageprocessing::close(inverted, 3);
+  auto eroded1 = imageprocessing::erode(inverted, 1);
+  imageList.insert(eroded1);
+  names.push_back("eroded1");
+
+  auto closed = imageprocessing::close(inverted, 1);
   imageList.insert(closed);
   names.push_back("closed");
 
@@ -50,9 +54,8 @@ int main() {
   {
     CImgDisplay imgdisplay;
     auto img = imageList.at(i);
-    unsigned char purple[] = { 0, 0, 0 }; 
-    img.draw_text(100, 100, names[i].c_str(), purple);
-    std::cout << names[i] << std::endl;
+    unsigned char gray[] = {127u, 127u, 127u};
+    img.draw_text(100, 100, names[i].c_str(), gray);    
     imgdisplay.display(img);
     imgDisplays.push_back(imgdisplay);
   }
