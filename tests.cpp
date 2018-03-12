@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "board.h"
+#include "timer.h"
 
 namespace {
   int passCount = 0;
@@ -79,14 +80,10 @@ namespace tests
       6,7,8,9,1,2,3,4,5,
       9,1,2,3,4,5,6,7,8};
     auto board = sudoku::board(vals);
-    auto start = std::chrono::system_clock::now();
+    auto t = common::timer("1e5 iterations");
     for (int i = 0; i < 1e5; i++)
       board.isValid();
     
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
-
-    std::cout << "1e5 iterations took " << elapsed_seconds.count() << "s." << std::endl;
   }
 
   void Row_invalid_board_is_invalid()

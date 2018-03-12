@@ -1,1 +1,1 @@
-g++ -O3 -Wall -static-libstdc++ hello.cpp -lgdi32 -ljpeg
+g++ -O3 -Wall -static-libstdc++ hello.cpp hough.cpp imageprocessing.cpp line.h -lgdi32 -ljpeg

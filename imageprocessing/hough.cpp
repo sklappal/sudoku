@@ -3,36 +3,22 @@
 #include <iostream>
 #include <vector>
 
-#include "..\include\CImg.h"
+#include "line.h"
+#include "hough.h"
+#include "../timer.h"
+
 using namespace cimg_library;
 
 namespace hough
 {
-
-  CImg<unsigned char> toGrayScale(const CImg<unsigned char>& image)
-  {
-    auto ret = CImg<unsigned char>(image.width(), image.height(), 1, 1, 0);
-    for (int x = 0; x < image.width(); x++)
-    {
-      for (int y = 0; y < image.height(); y++)
-      {
-        auto R = *image.data(x, y, 0, 0);
-        auto G = *image.data(x, y, 0, 1);
-        auto B = *image.data(x, y, 0, 2);
-
-        auto target = ret.data(x, y, 0, 0);
-        *target = 0.299 * R + 0.587 * G + 0.114 * B;
-      }
-    }
-    return ret;
-  }
-
   namespace
   {
-    auto rhoCount = 1024;
-    auto thetaCount = 1024;
-    auto thetaIncrement = 1.0 / thetaCount * (1.1 * M_PI);
-    auto minTheta = -M_PI * 0.55;
+    auto rhoCount = 2048;
+    auto thetaCount = 2048;
+    auto lineFindCount = 1000u;
+    
+    auto thetaIncrement = 1.0 / thetaCount * (M_PI);
+    auto minTheta = -M_PI * 0.50;
 
     int round(double value)
     {
@@ -83,11 +69,12 @@ namespace hough
       std::partial_sort(vx.begin(), vx.begin()+count, vx.end(), Comp(values));
       return vx;
     }
-
   }
 
-  CImg<unsigned char> transform(CImg<unsigned char>& gs)
+
+  CImg<uchar> transform(CImg<uchar>& gs, CImgList<uchar>& imageList, std::vector<std::string>& imageNames)
   {
+    auto though = common::timer("Hough transform");
     auto maxRho = std::max(gs.width(), gs.height()) * std::sqrt(2.0) + 1; 
 
     auto cosCache = std::vector<double>(thetaCount);
@@ -121,8 +108,7 @@ namespace hough
 
     auto normalized = normalize(vec);
 
-
-    auto ret = CImg<unsigned char>(thetaCount, rhoCount, 1, 1, 0);
+    auto ret = CImg<uchar>(thetaCount, rhoCount, 1, 1, 0);
     for (int theta = 0; theta < thetaCount; theta++)
     {
       for (int rho = 0; rho < rhoCount; rho++)
@@ -130,24 +116,34 @@ namespace hough
         *ret.data(theta, rho, 0, 0) = round(normalized[rho * thetaCount + theta] * 255);
       }
     }
+    though.stop();
 
-    auto maxCount = 5u;
-    auto maxIndices = findMaxIndices(normalized, maxCount);
-
-    for (size_t i = 0; i < maxCount; i++)
+    auto tlinefind = common::timer("Line finding & drawing");
+    auto maxIndices = findMaxIndices(normalized, lineFindCount);
+    auto parametrized_lines = linecontainer(maxRho);   
+    for (size_t i = 0; i < lineFindCount; i++)
     {
       auto index = maxIndices[i];
       auto thetaIndex = index % thetaCount;
       auto theta = indexToTheta(thetaIndex);
       auto rho = indexToRho(index / thetaCount, maxRho);
-      auto cost = cosCache[thetaIndex];
-      auto sint = sinCache[thetaIndex];      
 
-      std::cout << "Theta: " << theta;
-      std::cout << " Rho: " << rho;
-      std::cout << " Val: " << normalized[index] << std::endl;
+      auto p_line = parametrized_line(rho, theta);
+      parametrized_lines.add(p_line);
+    }   
 
-      unsigned char color = 255u;
+    auto lines = std::vector<line>();
+    for (size_t i = 0; i < parametrized_lines.size(); i++)
+    {
+      auto p_line = parametrized_lines.at(i);
+      auto theta = p_line.theta();
+      auto rho = p_line.rho();
+
+      std::cout << "theta: " << theta << " rho: " << rho << std::endl;
+
+      auto cost = std::cos(theta);
+      auto sint = std::sin(theta);      
+
       // line equation: rho = x cos (theta) + y sin (theta)
       int x_0, x_1, y_0, y_1;
       if (std::abs(theta) > 1e-2)
@@ -160,7 +156,7 @@ namespace hough
         x_1 = round((rho - y_1 * sint) / cost);        
       }
       else
-       {
+      {
         // along the x axis, find y-intersection
         x_0 = 0;
         y_0 = round(rho / sint);
@@ -168,10 +164,21 @@ namespace hough
         x_1 = gs.width();
         y_1 = round((rho - x_1 * cost) / sint);
       }
-      
-      gs.draw_line(x_0, y_0, x_1, y_1, &color);
+      lines.push_back(line(x_0, y_0, x_1, y_1));
     }   
 
+    auto with_lines = CImg<uchar>(gs);
+    uchar color = 127u;    
+    for(size_t i = 0; i < lines.size(); i++)
+    {
+      auto line = lines[i];
+      with_lines.draw_line(line.x0(), line.y0(), line.x1(), line.y1(), &color);
+    }
+
+    imageList.insert(with_lines);
+    imageNames.push_back("with lines");
+    imageList.insert(ret);
+    imageNames.push_back("hough transformed");
     return ret;
   }
 }
