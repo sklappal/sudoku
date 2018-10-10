@@ -3,7 +3,7 @@
 
 
 #define cimg_use_jpeg
-#include "..\include\CImg.h"
+#include "../include/CImg.h"
 
 #include "imageprocessing.h"
 #include "hough.h"
