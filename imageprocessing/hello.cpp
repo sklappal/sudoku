@@ -11,9 +11,11 @@ using namespace cimg_library;
 
 
 
-int main() {
+int main(int argc, char* argv[])  {
   
-  CImg<unsigned char> original("../data/sudoku.jpg");
+  auto fileName = argc == 2 ? argv[1] : "../data/sudoku.jpg";
+
+  CImg<unsigned char> original(fileName);
   auto image = original.resize(800, (800.0 / (original.width())) * original.height());
   
   std::cout << "w: " << image.width() << " h: " << image.height() << std::endl;
@@ -54,8 +56,9 @@ int main() {
   {
     CImgDisplay imgdisplay;
     auto img = imageList.at(i);
-    unsigned char gray[] = {127u, 127u, 127u};
-    img.draw_text(100, 100, names[i].c_str(), gray);    
+    unsigned char white[] = {255u, 255u, 255u};
+    unsigned char black[] = {0u, 0u, 0u};
+    img.draw_text(100, 100, names[i].c_str(), white, black, 1, 24 );    
     imgdisplay.display(img);
     imgDisplays.push_back(imgdisplay);
   }
