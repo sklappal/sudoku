@@ -19,8 +19,8 @@ namespace hough
     auto lineFindCount = 1000u;
     
     auto thetaIncrement = 1.0 / (thetaCount-1) * (M_PI);
-    auto minTheta = -M_PI * 0.55;
-    auto maxTheta = M_PI * 0.55;
+    auto minTheta = -M_PI * 0.50;
+    //auto maxTheta = M_PI * 0.55;
 
     int round(double value)
     {
@@ -29,7 +29,7 @@ namespace hough
 
     double indexToTheta(int index)
     {
-      //return minTheta + index * thetaIncrement;
+      return minTheta + index * thetaIncrement;
     }
 
     int rhoToIndex(double rho, double maxRho)
