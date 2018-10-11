@@ -90,23 +90,17 @@ namespace hough
     }
 
     auto vec = std::vector<int>(rhoCount * thetaCount);
-    for (int x = 0; x < gs.width(); x++)
-    {
-      for (int y = 0; y < gs.height(); y++)
+    cimg_forXY(gs, x, y) {
+      if (gs(x, y) < 100)
       {
-        auto imageVal = *gs.data(x, y, 0, 0);
-        
-        if (imageVal < 100)
+        for (int i = 0; i < thetaCount; i++)
         {
-          for (int i = 0; i < thetaCount; i++)
-          {
-            auto rho = x * cosCache[i] + y * sinCache[i];
-            auto rhoIndex = rhoToIndex(rho, maxRho);
-            vec[rhoIndex * thetaCount + i] += 1;         
-          }
+          auto rho = x * cosCache[i] + y * sinCache[i];
+          auto rhoIndex = rhoToIndex(rho, maxRho);
+          vec[rhoIndex * thetaCount + i] += 1;         
         }
-      }      
-    }
+      }
+    }  
 
     auto normalized = normalize(vec);
 

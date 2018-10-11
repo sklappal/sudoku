@@ -56,9 +56,17 @@ int main(int argc, char* argv[])  {
   {
     CImgDisplay imgdisplay;
     auto img = imageList.at(i);
-    unsigned char white[] = {255u, 255u, 255u};
-    unsigned char black[] = {0u, 0u, 0u};
-    img.draw_text(100, 100, names[i].c_str(), white, black, 1, 24 );    
+    if (img.spectrum() == 1) {
+      auto img2 = CImg<unsigned char>(img.width(), img.height(), 1, 3);
+      cimg_forXY(img, x, y) {
+        img2(x, y, 0) = img(x, y);
+        img2(x, y, 1) = img(x, y);
+        img2(x, y, 2) = img(x, y);
+      }
+      img = img2;
+    }
+    unsigned char red[] = {255u, 0u, 0u};
+    img.draw_text(20, 20, names[i].c_str(), red, 0, 1, 36 );    
     imgdisplay.display(img);
     imgDisplays.push_back(imgdisplay);
   }
