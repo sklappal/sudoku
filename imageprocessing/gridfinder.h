@@ -115,11 +115,11 @@ void printSortedRhos(std::vector<parametrized_line> lines)
 
 std::vector<parametrized_line> find_grid(std::vector<parametrized_line> inputlines, double maxRho)
 {
-  //auto thetaEpsilon = (2 * M_PI) / 50;
-  //auto rhoEpsilon = 2 * maxRho / 50;
+  auto thetaEpsilon = (2 * M_PI) / 50;
+  auto rhoEpsilon = 2 * maxRho / 50;
 
-  auto thetaEpsilon = 0.1;
-  auto rhoEpsilon = 0.1;
+  // auto thetaEpsilon = 0.1;
+  // auto rhoEpsilon = 0.1;
 
   auto prunedlines = std::vector<parametrized_line>();
 

@@ -14,12 +14,12 @@ namespace hough
 {
   namespace
   {
-    auto rhoCount = 1024;
-    auto thetaCount = 1024;
-    auto lineFindCount = 1000u;
+    auto rhoCount = 512;
+    auto thetaCount = 512;
+  //  auto lineFindCount = 1000u;
     
-    auto thetaIncrement = 1.0 / (thetaCount-1) * (M_PI);
-    auto minTheta = -M_PI * 0.50;
+    auto thetaIncrement = 1.0 / (thetaCount-1) * (M_PI*1.1);
+    auto minTheta = -M_PI * 0.55;
     //auto maxTheta = M_PI * 0.55;
 
     int round(double value)
@@ -54,23 +54,65 @@ namespace hough
       return ret;
     }
 
-    struct Comp{
+    struct Comp {
       Comp(const std::vector<double>& v ) : _v(v) {}
       bool operator ()(int a, int b) { return _v[a] > _v[b]; }
       const std::vector<double>& _v;
     };
 
-    std::vector<int> findMaxIndices(std::vector<double> values, int count)
+    std::vector<int> findLocalMaximums(const std::vector<double>& vec) 
     {
-      auto vx = std::vector<int>(values.size());
-      
-      for(size_t i = 0; i < vx.size(); i++)
-      {
-          vx[i] = i;
-      } 
-      std::partial_sort(vx.begin(), vx.begin()+count, vx.end(), Comp(values));
-      return vx;
+      std::vector<int> ret;
+      for (int theta = 0; theta < thetaCount; theta++) {
+        for (int rho = 0; rho < rhoCount; rho++) {
+          auto max = true;
+          auto val = vec[rho * thetaCount + theta];
+          auto range = 20;
+          for (int th =-range; th <= range; th++) {
+            for (int rh = -range; rh <= range; rh++) {
+          
+              auto idx = (rho + rh) * thetaCount + theta + th;
+              if (idx >= 0 && idx < (long)vec.size()) {
+                if (vec[idx] > val) {
+                  max = false;
+                  break;
+                }
+              }
+          
+            }
+            if (!max) {
+              break;
+            }
+          }
+
+          if (max) {
+            ret.push_back(rho * thetaCount + theta);
+          }
+        }
+      }
+      std::cout << "local maximas count " << ret.size() << std::endl;
+      auto count = 40;
+      std::partial_sort(ret.begin(), ret.begin()+count, ret.end(), Comp(vec));
+
+      std::vector<int> ret2;
+      for (int i =0; i < count; i++) {
+        ret2.push_back(ret[i]);
+      }
+
+      return ret2;
     }
+
+    // std::vector<int> findMaxIndices(std::vector<double> values, int count)
+    // {
+    //   auto vx = std::vector<int>(values.size());
+      
+    //   for(size_t i = 0; i < vx.size(); i++)
+    //   {
+    //       vx[i] = i;
+    //   } 
+    //   std::partial_sort(vx.begin(), vx.begin()+count, vx.end(), Comp(values));
+    //   return vx;
+    // }
   }
 
 
@@ -104,6 +146,7 @@ namespace hough
 
     auto normalized = normalize(vec);
 
+
     auto ret = CImg<uchar>(thetaCount, rhoCount, 1, 1, 0);
     for (int theta = 0; theta < thetaCount; theta++)
     {
@@ -115,11 +158,13 @@ namespace hough
     though.stop();
 
     auto tlinefind = common::timer("Line finding & drawing");
-    auto maxIndices = findMaxIndices(normalized, lineFindCount);
+    //auto maxIndices = findMaxIndices(normalized, lineFindCount);
+    
+    auto localMaximums = findLocalMaximums(normalized);
     auto parametrized_lines = std::vector<parametrized_line>();
-    for (size_t i = 0; i < lineFindCount; i++)
+    for (size_t i = 0; i < localMaximums.size(); i++)
     {
-      auto index = maxIndices[i];
+      auto index = localMaximums[i];
       auto thetaIndex = index % thetaCount;
       auto theta = indexToTheta(thetaIndex);
       auto rho = indexToRho(index / thetaCount, maxRho);
@@ -128,7 +173,7 @@ namespace hough
       parametrized_lines.push_back(p_line);
     }   
 
-    parametrized_lines = hough::find_grid(parametrized_lines, maxRho);
+   // parametrized_lines = hough::find_grid(parametrized_lines, maxRho);
 
     auto lines = std::vector<line>();
     for (size_t i = 0; i < parametrized_lines.size(); i++)

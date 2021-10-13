@@ -55,7 +55,6 @@
                 "C:/MinGW/lib/gcc/mingw32/6.3.0/include"
             ],
             "defines": [
-                
                 "UNICODE"
             ],
             "intelliSenseMode": "msvc-x64",
@@ -74,7 +73,9 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "cStandard": "c11",
+            "cppStandard": "c++17"
         }
     ],
     "version": 3

@@ -26,28 +26,28 @@ int main(int argc, char* argv[])  {
   auto names = std::vector<std::string>();
 
   auto gs = imageprocessing::toGrayScale(image);
-  imageList.insert(gs);
-  names.push_back("gray scale");
+  //imageList.insert(gs);
+  //names.push_back("gray scale");
 
   auto binary = imageprocessing::binarize(gs, 90);
-  imageList.insert(binary);
-  names.push_back("binary");
+  // imageList.insert(binary);
+  // names.push_back("binary");
 
   auto inverted = imageprocessing::invert(binary);
-  imageList.insert(inverted);
-  names.push_back("inverted");
+  // imageList.insert(inverted);
+  // names.push_back("inverted");
 
   auto eroded1 = imageprocessing::erode(inverted, 1);
-  imageList.insert(eroded1);
-  names.push_back("eroded1");
+  // imageList.insert(eroded1);
+  // names.push_back("eroded1");
 
   auto closed = imageprocessing::close(inverted, 1);
-  imageList.insert(closed);
-  names.push_back("closed");
+  // imageList.insert(closed);
+  // names.push_back("closed");
 
   auto inverted_closed = imageprocessing::invert(closed);
-  imageList.insert(inverted_closed);
-  names.push_back("inverted_closed");
+  // imageList.insert(inverted_closed);
+  // names.push_back("inverted_closed");
 
   auto hough = hough::transform(inverted_closed, imageList, names);
 
